@@ -1,12 +1,51 @@
+import { useEffect, useState } from "react";
 import ytLogo from "../assets/ytLogo.svg";
-import { useStore } from "../utils/store";
+import { useCachedData, useStore, useVideoStore } from "../utils/store";
+import {
+  GOOGLE_API_KEY,
+  YOUTUBE_SEARCH_API,
+  YOUTUBE_SEARCH_VIDEO_API,
+} from "../utils/constants";
 const Head = () => {
   const { toggleSidebar } = useStore();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchSuggestions, setSearchSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(true);
+  const { cachedData, setCachedData } = useCachedData();
+  const { videos, setVideos } = useVideoStore();
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (cachedData?.[searchQuery]?.length > 0) {
+        setSearchSuggestions(cachedData?.[searchQuery]);
+      } else {
+        getSearchSuggestions();
+      }
+    }, 200);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const fetchSearchedVideos = async (item) => {
+    console.log("called " + item);
+    const data = await fetch(
+      YOUTUBE_SEARCH_VIDEO_API + item + "&key=" + GOOGLE_API_KEY
+    );
+    const jsonData = await data.json();
+    setVideos(jsonData?.items);
+  };
+
+  const getSearchSuggestions = async () => {
+    const data = await fetch(YOUTUBE_SEARCH_API + searchQuery);
+    const jsonData = await data.json();
+    setSearchSuggestions(jsonData[1]);
+    setCachedData(searchQuery, jsonData[1]);
+  };
 
   return (
     <div className="grid grid-flow-col p-5  shadow-lg">
-      <div className="col-span-1 flex gap-4" onClick={toggleSidebar}>
+      <div className="col-span-1 flex gap-4">
         <svg
+          onClick={toggleSidebar}
           className="w-6 h-6 cursor-pointer"
           viewBox="0 0 24 24"
           fill="none"
@@ -42,37 +81,59 @@ const Head = () => {
         </svg>{" "}
         <img src={ytLogo} className="w-22 h-6 " />
       </div>{" "}
-      <div className="flex col-span-10 text-center">
+      <div className="flex col-span-10 text-center relative">
         {" "}
-        <input
-          type="text"
-          className="p-2 border border-gray-500  rounded-l-2xl w-3/4  "
-        />
-        <button className="bg-gray-200 hover:cursor-pointer border border-gray-500 p-2 rounded-r-2xl">
-          <svg
-            className=" w-5 h-5"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
-            <g
-              id="SVGRepo_tracerCarrier"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            ></g>
-            <g id="SVGRepo_iconCarrier">
-              {" "}
-              <path
-                d="M16.6725 16.6412L21 21M19 11C19 15.4183 15.4183 19 11 19C6.58172 19 3 15.4183 3 11C3 6.58172 6.58172 3 11 3C15.4183 3 19 6.58172 19 11Z"
-                stroke="#000000"
-                strokeWidth="2"
+        <div className="w-full flex">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onFocus={() => setShowSuggestions(true)}
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+            className=" border border-gray-500  rounded-l-2xl w-3/4 px-5 py-2"
+          />
+
+          <button className="bg-gray-200 hover:cursor-pointer border border-gray-500 p-2 rounded-r-2xl">
+            <svg
+              className=" w-5 h-5"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+              <g
+                id="SVGRepo_tracerCarrier"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-              ></path>{" "}
-            </g>
-          </svg>
-        </button>
+              ></g>
+              <g id="SVGRepo_iconCarrier">
+                {" "}
+                <path
+                  d="M16.6725 16.6412L21 21M19 11C19 15.4183 15.4183 19 11 19C6.58172 19 3 15.4183 3 11C3 6.58172 6.58172 3 11 3C15.4183 3 19 6.58172 19 11Z"
+                  stroke="#000000"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                ></path>{" "}
+              </g>
+            </svg>
+          </button>
+        </div>{" "}
+        {searchSuggestions.length > 0 && showSuggestions ? (
+          <div className=" text-start absolute border border-gray-500 bg-white  rounded-2xl py-5 top-12 shadow-2xl w-3/4">
+            <ul>
+              {searchSuggestions.map((item) => (
+                <li
+                  key={item}
+                  className="px-5 py-2 hover:bg-gray-100 hover:cursor-pointer"
+                  onClick={() => fetchSearchedVideos(item)}
+                >
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
       </div>
       <div className="w-5 h-5  col-span-1">
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">

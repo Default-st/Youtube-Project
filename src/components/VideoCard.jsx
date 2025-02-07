@@ -1,6 +1,3 @@
-import React from "react";
-import { Link } from "react-router";
-
 const VideoCard = ({ info }) => {
   //   console.log(info);
   const { snippet, statistics } = info;
@@ -18,6 +15,14 @@ const VideoCard = ({ info }) => {
         <li>{channelTitle}</li>
         <li>{statistics?.viewCount} views</li>
       </ul>
+    </div>
+  );
+};
+
+export const AdVideoCard = ({ info }) => {
+  return (
+    <div className="p-1 m-1 border border-red-500">
+      <VideoCard info={info} />
     </div>
   );
 };
