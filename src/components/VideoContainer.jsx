@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { YOUTUBE_VIDEOS_API } from "../utils/constants";
-import VideoCard, { AdVideoCard } from "./VideoCard";
+import VideoCard from "./VideoCard";
 import { dummyJson } from "../utils/dummy";
 import { Link } from "react-router";
 import { useVideoStore } from "../utils/store";
@@ -8,10 +8,10 @@ import { useVideoStore } from "../utils/store";
 const VideoContainer = () => {
   const { videos, setVideos } = useVideoStore();
   const fetchVideos = async () => {
-    // const data = await fetch(YOUTUBE_VIDEOS_API);
-    // const jsonData = await data.json();
-    // setVideos(jsonData.items);
-    setVideos(dummyJson.items);
+    const data = await fetch(YOUTUBE_VIDEOS_API);
+    const jsonData = await data.json();
+    setVideos(jsonData.items);
+    // setVideos(dummyJson.items);
   };
   useEffect(() => {
     fetchVideos();

@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { OFFSET_LIVE_CHAT } from "./constants";
 
 export const useStore = create((set) => ({
   showSidebar: true,
@@ -17,4 +18,21 @@ export const useCachedData = create((set) => ({
 export const useVideoStore = create((set) => ({
   videos: [],
   setVideos: (data) => set(() => ({ videos: data })),
+}));
+
+export const useLiveChatStore = create((set) => ({
+  liveChatData: [],
+  setLiveChatData: (data) =>
+    set((state) => {
+      if (state.liveChatData.length > OFFSET_LIVE_CHAT) {
+        return {
+          liveChatData: [
+            data,
+            ...state.liveChatData.slice(0, OFFSET_LIVE_CHAT),
+          ],
+        };
+      } else {
+        return { liveChatData: [data, ...state.liveChatData] };
+      }
+    }),
 }));
